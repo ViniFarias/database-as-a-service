@@ -47,19 +47,25 @@
         /**
         * Reset credential password
         */
-        Credential.prototype.reset_password = function(callback) {
+        Credential.prototype.reset_password = function($newPassInput, callback) {
             var credential = this;
+            var newPass = $newPassInput.val();
             $.ajax({
                 "url": "/logical/credential/" + this.pk,
                 "type": "PUT",
+                "data": {'pass': newPass}
             }).done(function(data) {
                 $(".show-password", credential.$row).attr("data-content", data.credential.password);
                 $(".copy-password", credential.$row).attr("data-content", data.credential.password);
                 if (callback) {
                     callback(credential);
+                    $newPassInput.val(data.credential.random_password);
+                    password_strength(
+                      data.credential.random_password,
+                      credential.pk
+                    );
                 }
             });
-
         };
 
 
@@ -148,7 +154,8 @@
 
             $("#create_new_password-" + credential.pk).popover({trigger: "hover", placement: "right", content: "Generate new password"});
             $("#reset_psw_modal-" + credential.pk + " .modal-footer").on("click.reset-password", ".btn-reset-password", function(e) {
-              credential.reset_password(function() {
+              var $newPassInput = $('#modal_new_password_' + credential.pk);
+              credential.reset_password($newPassInput, function() {
                     $("#reset_psw_modal-" + credential.pk).modal('toggle');
                     credential.show_password(true);
                     return false;

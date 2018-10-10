@@ -950,9 +950,9 @@ class Credential(BaseModel):
             **{'password_especial_characters': ''} if self.database.infra.engine.is_redis else {}
         )
 
-    def reset_password(self):
-        """ Reset credential password to a new random password """
-        self.password = self.make_random_password()
+    def reset_password(self, password=None):
+        """ Reset credential password"""
+        self.password = password if password else self.make_random_password()
         self.driver.update_user(self)
         self.save()
 

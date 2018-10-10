@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 import json
+from urlparse import parse_qs
 from collections import OrderedDict
 import logging
 from django.contrib import messages
@@ -65,6 +66,7 @@ class CredentialBase(BaseDetailView):
                     "ssl_swap_label": obj.ssl_swap_label,
                     "force_ssl": obj.force_ssl,
                     "privileges": obj.privileges,
+                    "random_password": obj.make_random_password()
                 }
             }
         output = json.dumps(obj, indent=4)
@@ -95,12 +97,14 @@ class CredentialView(CredentialBase):
 
     @method_decorator(csrf_exempt)
     def put(self, request, *args, **kwargs):
+        data = parse_qs(self.request.body)
+        password = data.get('pass', [None])[0]
         credential = self.get_object()
 
         # check permission
         self.check_permission(request, "logical.change_credential", credential)
 
-        credential.reset_password()
+        credential.reset_password(password)
         return self.as_json(credential)
 
     @method_decorator(csrf_exempt)
